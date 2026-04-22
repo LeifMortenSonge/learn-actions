@@ -1,0 +1,56 @@
+# ============================================================
+#  MIN FØRSTE GITHUB ACTIONS WORKFLOW
+# ============================================================
+#  Denne filen forteller GitHub: "Hver gang noen pusher kode,
+#  kjør disse stegene automatisk."
+# ============================================================
+
+# 1️⃣ NAVN - Vises i GitHub Actions-fanen
+name: Hello GitHub Actions
+
+# 2️⃣ TRIGGER - Når skal denne workflowen kjøre?
+#    "on: push" betyr: hver gang noen pusher kode til repoet
+on:
+  push:
+    branches:
+      - main    # Bare kjør når det pushes til main-branchen
+
+# 3️⃣ JOBS - Hva skal gjøres? En workflow har én eller flere "jobs"
+jobs:
+
+  # Navnet på jobben (du velger selv)
+  si-hei:
+    # Hvilken maskin skal jobben kjøre på?
+    # "ubuntu-latest" = en fersk Linux-VM som GitHub gir deg gratis
+    runs-on: ubuntu-latest
+
+    # 4️⃣ STEPS - Stegene inni jobben, kjøres i rekkefølge
+    steps:
+
+      # Steg 1: Hent koden fra repoet
+      # "uses" betyr: bruk en ferdiglaget action fra GitHub Marketplace
+      - name: 📥 Hent koden fra repoet
+        uses: actions/checkout@v4
+
+      # Steg 2: Skriv en hilsen
+      # "run" betyr: kjør denne kommandoen i terminalen
+      - name: 👋 Si hei!
+        run: echo "Hello from GitHub Actions! 🎉"
+
+      # Steg 3: Vis litt nyttig info om miljøet
+      - name: 🖥️ Vis miljøinfo
+        run: |
+          echo "=== Miljøinformasjon ==="
+          echo "Repository: ${{ github.repository }}"
+          echo "Branch:     ${{ github.ref_name }}"
+          echo "Commit:     ${{ github.sha }}"
+          echo "Bruker:     ${{ github.actor }}"
+          echo "Event:      ${{ github.event_name }}"
+          echo "Runner OS:  ${{ runner.os }}"
+          echo "Tidspunkt:  $(date)"
+
+      # Steg 4: List filene i repoet
+      - name: 📂 Vis filer i repoet
+        run: |
+          echo "=== Filer i repoet ==="
+          ls -la
