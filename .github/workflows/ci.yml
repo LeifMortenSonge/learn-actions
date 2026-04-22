@@ -1,0 +1,42 @@
+# ============================================================
+#  CI WORKFLOW – Kjører tester automatisk på Pull Requests
+# ============================================================
+#  Forskjellen fra hello.yml:
+#    - Trigges på "pull_request" i stedet for "push"
+#    - Installerer Node.js (en "runtime")
+#    - Kjører "npm test" som returnerer OK/FEIL
+#    - Resultatet vises som ✅ eller ❌ på PR-en
+# ============================================================
+
+name: CI – Kjør tester
+
+# 🔑 NY TRIGGER: pull_request
+# Dette betyr: "kjør denne workflowen når noen åpner eller oppdaterer en PR"
+on:
+  pull_request:
+    branches:
+      - main    # Bare når PR-en peker MOT main
+
+jobs:
+  test:
+    name: 🧪 Kjør tester
+    runs-on: ubuntu-latest
+
+    steps:
+      # Steg 1: Hent koden (samme som før)
+      - name: 📥 Hent koden
+        uses: actions/checkout@v4
+
+      # Steg 2: Installer Node.js
+      # Dette er en ferdiglaget action som setter opp Node.js på runneren
+      - name: 📦 Sett opp Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'    # Hvilken versjon av Node.js
+
+      # Steg 3: Kjør testene!
+      # "npm test" kjører kommandoen definert i package.json → "node test.js"
+      # Hvis test.js returnerer exit code 1, feiler dette steget → PR får ❌
+      # Hvis test.js returnerer exit code 0, lykkes det → PR får ✅
+      - name: 🧪 Kjør npm test
+        run: npm test
