@@ -1,0 +1,104 @@
+# ============================================================
+#  AVANSERT WORKFLOW – Matrix builds + manuell godkjenning
+# ============================================================
+#  Denne workflowen viser to avanserte konsepter:
+#
+#  1. MATRIX STRATEGY – Kjør samme tester på flere Node-versjoner
+#     samtidig. Hvis én versjon feiler, ser du det umiddelbart.
+#
+#  2. ENVIRONMENTS + MANUELL GODKJENNING – Etter at testene
+#     består, MÅ et menneske godkjenne før deploy skjer.
+#     Dette er en "deployment gate" – vanlig i produksjon.
+#
+#  FLYTEN:
+#     Push → Test (Node 18 + 20 parallelt) → Venter på godkjenning → Deploy
+# ============================================================
+
+name: Test & Deploy med godkjenning
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  # ────────────────────────────────────────────────────
+  # JOBB 1: TEST – Kjører på FLERE Node-versjoner parallelt
+  # ────────────────────────────────────────────────────
+  test:
+    name: 🧪 Test (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+
+    # 🔑 MATRIX STRATEGY
+    # Dette lager FLERE parallelle kjøringer av samme jobb.
+    # GitHub spinner opp én VM per kombinasjon.
+    strategy:
+      matrix:
+        node-version: [18, 20]
+        # Resulterer i 2 parallelle jobber:
+        #   - "Test (Node 18)" på en VM
+        #   - "Test (Node 20)" på en annen VM
+
+    steps:
+      - name: 📥 Hent koden
+        uses: actions/checkout@v4
+
+      - name: 📦 Sett opp Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          # matrix.node-version er "18" i den ene jobben, "20" i den andre
+          node-version: ${{ matrix.node-version }}
+
+      - name: 🔍 Vis Node-versjon
+        run: |
+          echo "Node versjon: $(node --version)"
+          echo "npm versjon:  $(npm --version)"
+
+      - name: 🧪 Kjør tester
+        run: npm test
+
+  # ────────────────────────────────────────────────────
+  # JOBB 2: DEPLOY – Krever manuell godkjenning
+  # ────────────────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy til produksjon
+    runs-on: ubuntu-latest
+
+    # "needs: test" betyr: denne jobben starter IKKE
+    # før test-jobben er ferdig og grønn
+    needs: test
+
+    # 🔑 ENVIRONMENT med manuell godkjenning
+    # Pipelinen STOPPER her og venter på at du trykker "Approve"
+    # i GitHub UI. Ingen deploy uten godkjenning!
+    environment:
+      name: production
+      url: https://stlearnactionsc196ce.z1.web.core.windows.net/
+
+    steps:
+      - name: 📥 Hent koden
+        uses: actions/checkout@v4
+
+      - name: 🔐 Logg inn i Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: 📤 Deploy til Azure Storage
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} \
+            --source . \
+            --destination '$web' \
+            --overwrite \
+            --pattern '*.html'
+
+      - name: ✅ Deploy fullført!
+        run: |
+          echo "==========================================="
+          echo "✅ Produksjon er oppdatert!"
+          echo "🌍 URL: https://${{ secrets.STORAGE_ACCOUNT_NAME }}.z1.web.core.windows.net/"
+          echo "📋 Godkjent av: ${{ github.actor }}"
+          echo "📅 Tidspunkt:   $(date)"
+          echo "==========================================="
