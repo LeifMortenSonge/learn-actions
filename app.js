@@ -10,9 +10,13 @@ function multiply(a, b) {
     return a * b;
 }
 
+function subtract(a, b) {
+    return a - b;
+}
+
 function greet(name) {
     return `Hei, ${name}! Velkommen til GitHub Actions.`;
 }
 
 // Eksporter funksjonene så testfilen kan bruke dem
-module.exports = { add, multiply, greet };
+module.exports = { add, multiply, subtract, greet };
