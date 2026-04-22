@@ -3,7 +3,7 @@
 //  Returnerer exit code 0 (OK) eller 1 (feil)
 // ============================================================
 
-const { add, multiply, greet } = require('./app');
+const { add, multiply, subtract, greet } = require('./app');
 
 let passed = 0;
 let failed = 0;
@@ -33,6 +33,12 @@ console.log('\n📦 multiply()');
 test('3 × 4 = 12', multiply(3, 4), 12);
 test('0 × 100 = 0', multiply(0, 100), 0);
 test('-2 × 3 = -6', multiply(-2, 3), -6);
+
+// --- Tester for subtract() ---
+console.log('\n📦 subtract()');
+test('10 - 3 = 7', subtract(10, 3), 7);
+test('0 - 0 = 0', subtract(0, 0), 0);
+test('-5 - (-3) = -2', subtract(-5, -3), -2);
 
 // --- Tester for greet() ---
 console.log('\n📦 greet()');
